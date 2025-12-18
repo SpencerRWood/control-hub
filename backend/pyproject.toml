@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastapi-backend"
+version = "0.1.0"
+description = "FastAPI backend for template"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "pydantic-settings",
+  "sqlalchemy>=2.0",
+  "asyncpg",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "ruff",
+  "mypy",
+  "isort",
+  "pytest",
+  "pytest-asyncio",
+  "httpx",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+exclude = '''
+(
+  /migrations
+  | /venv
+  | /env
+)
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = ["app"]
+default_section = "THIRDPARTY"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["app"]
+exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = []
+
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+strict_optional = true
+plugins = []
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-q"
+testpaths = ["tests"]
