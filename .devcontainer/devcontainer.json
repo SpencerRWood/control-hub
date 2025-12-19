@@ -1,5 +1,5 @@
 {
-  "name": "fastapi-react-template",
+  "name": "control-hub",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   "features": {
     "ghcr.io/devcontainers/features/python:1": { "version": "3.11" },
@@ -20,7 +20,7 @@
       ]
     }
   },
-  "postCreateCommand": "python -m pip install -U pip && python -m pip install -e backend[dev] && cd frontend && npm ci",
+  "postCreateCommand": "python -m pip install -U pip && python -m pip install -e backend[dev] && cd frontend && ( [ -f package-lock.json ] || npm install ) && npm ci",
   "postStartCommand": "bash .devcontainer/start-dev.sh",
   "forwardPorts": [8000, 5173],
   "runArgs": [
