@@ -1,8 +1,13 @@
-from typing import Dict
+# app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+from app.api.routes import all_routers
+
+app = FastAPI(title="Control Hub API")
+
+for router, prefix, tags in all_routers:
+    app.include_router(router, prefix=prefix, tags=tags)
 
 origins = [
     "http://localhost:5173",
@@ -16,8 +21,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.get("/health") 
-def health() -> Dict[str,str]:
-    return {"status": "ok"}
