@@ -5,4 +5,4 @@ class Base(DeclarativeBase):
     pass
 
 # Import models so metadata is populated for Alembic
-from app.models import approval  # noqa: F401
+from app.models import approval_item  # noqa: F401
