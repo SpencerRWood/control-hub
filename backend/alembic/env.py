@@ -1,4 +1,6 @@
 # alembic/env.py
+##FIXME: Need to fix the async for alembic migrations
+
 from logging.config import fileConfig
 
 from alembic import context

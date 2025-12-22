@@ -14,7 +14,8 @@ dependencies = [
   "sqlalchemy>=2.0",
   "psycopg[binary]>=3.1",
   "asyncpg",
-  "alembic"
+  "alembic",
+  "python-dotenv"
 ]
 
 [project.optional-dependencies]
