@@ -24,7 +24,6 @@ dev = [
   "mypy",
   "isort",
   "pytest",
-  "pytest-asyncio",
   "httpx",
 ]
 
@@ -55,7 +54,6 @@ exclude = ["migrations"]
 select = ["E", "F", "I", "B"]
 ignore = []
 
-
 [tool.mypy]
 python_version = "3.11"
 warn_unused_configs = true
@@ -68,3 +66,8 @@ plugins = []
 minversion = "8.0"
 addopts = "-q"
 testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["alembic*"]

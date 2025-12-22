@@ -20,7 +20,8 @@
       ]
     }
   },
-  "postCreateCommand": "bash -lc 'set -euo pipefail; python -m pip install -U pip; python -m pip install -e backend; cd frontend; if [ -f package-lock.json ]; then npm ci; else npm install; fi'",
+  
+  "postCreateCommand": "bash -lc 'set -euo pipefail; set -a; [ -f /workspace/.env ] && . /workspace/.env; set +a; python -m pip install -U pip; python -m pip install -e \"backend[dev]\"; cd frontend; if [ -f package-lock.json ]; then npm ci; else npm install; fi'",
   //  python -m pip install -r backend/requirements-dev.txt;
   "postStartCommand": "bash .devcontainer/start-dev.sh",
   "forwardPorts": [8000, 5173],
