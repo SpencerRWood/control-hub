@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.approval_item import ApprovalStatus
 
@@ -18,6 +18,7 @@ class ApprovalItemCreate(BaseModel):
 
 
 class ApprovalItemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     title: str
     description: Optional[str]
@@ -31,9 +32,6 @@ class ApprovalItemRead(BaseModel):
     decision_at: Optional[datetime]
     decision_by: Optional[str]
     decision_reason: Optional[str]
-
-    class Config:
-        from_attributes = True
 
 
 class ApprovalItemApprove(BaseModel):
