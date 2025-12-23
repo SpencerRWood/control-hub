@@ -6,5 +6,5 @@ client = TestClient(app)
 
 @pytest.mark.anyio
 async def test_health(async_client):
-    r = await async_client.get("/health/api_health")
+    r = await async_client.get("/health/api")
     assert r.status_code == 200

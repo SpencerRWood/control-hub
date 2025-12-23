@@ -1,8 +1,8 @@
 import pytest
 from app.core.config import settings
 from app.db.base import Base
+from app.db.session_async import get_session
 from app.main import app
-from backend.app.db.session_async import get_session
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
