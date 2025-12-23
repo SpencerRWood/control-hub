@@ -3,12 +3,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional, Sequence
 
-from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.models.approval_item import ApprovalItem, ApprovalStatus
 from app.repos.approval_item_repo import ApprovalItemRepo
 from app.schemas.approval_item import ApprovalItemCreate
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ApprovalItemService:
@@ -54,7 +53,11 @@ class ApprovalItemService:
             offset=offset,
         )
 
-    async def approve(self, item_id: int, *, decision_by: str, decision_reason: Optional[str]) -> ApprovalItem:
+    async def approve(self, 
+                      item_id: int, 
+                      *, 
+                      decision_by: str, 
+                      decision_reason: Optional[str]) -> ApprovalItem:
         async with self.session.begin():
             item = await self.repo.get(item_id)
             if not item:
@@ -70,7 +73,11 @@ class ApprovalItemService:
         await self.session.refresh(item)
         return item
 
-    async def reject(self, item_id: int, *, decision_by: str, decision_reason: str) -> ApprovalItem:
+    async def reject(self, 
+                     item_id: int, 
+                     *, 
+                     decision_by: str, 
+                     decision_reason: str) -> ApprovalItem:
         async with self.session.begin():
             item = await self.repo.get(item_id)
             if not item:
