@@ -1,8 +1,7 @@
 # app/main.py
+from app.api.routes import all_routers
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.api.routes import all_routers
 
 app = FastAPI(title="Control Hub API")
 

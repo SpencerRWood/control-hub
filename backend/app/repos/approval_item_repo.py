@@ -3,10 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, Sequence
 
+from app.models.approval_item import ApprovalItem, ApprovalStatus
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.models.approval_item import ApprovalItem, ApprovalStatus
 
 
 class ApprovalItemRepo:
@@ -20,7 +19,8 @@ class ApprovalItemRepo:
         return item
 
     async def get(self, item_id: int) -> Optional[ApprovalItem]:
-        res = await self.session.execute(select(ApprovalItem).where(ApprovalItem.id == item_id))
+        res = await self.session.execute(select(ApprovalItem)\
+                                         .where(ApprovalItem.id == item_id))
         return res.scalar_one_or_none()
 
     async def list(

@@ -3,10 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.db.session import get_session
+from app.db.session_async import get_session
 from app.models.approval_item import ApprovalStatus
 from app.schemas.approval_item import (
     ApprovalItemApprove,
@@ -15,6 +12,8 @@ from app.schemas.approval_item import (
     ApprovalItemReject,
 )
 from app.services.approval_item_service import ApprovalItemService
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["approvals"])
 
@@ -24,7 +23,8 @@ def get_service(session: AsyncSession = Depends(get_session)) -> ApprovalItemSer
 
 
 @router.post("", response_model=ApprovalItemRead, status_code=201)
-async def create_approval_item(payload: ApprovalItemCreate, svc: ApprovalItemService = Depends(get_service)):
+async def create_approval_item(payload: ApprovalItemCreate, 
+                               svc: ApprovalItemService = Depends(get_service)):
     return await svc.create(payload)
 
 

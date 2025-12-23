@@ -1,16 +1,11 @@
 import asyncio
 import os
 
+from app.models.approval_item import ApprovalItem, ApprovalStatus
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.models.approval_item import ApprovalItem, ApprovalStatus
-
-
-# Explicitly load .env from workspace root
-# This is critical when running from /workspace/backend
 load_dotenv("/workspace/.env")
-
 
 def _pick_db_url() -> str:
     """

@@ -4,18 +4,20 @@ import enum
 from datetime import datetime
 from typing import Any, Optional
 
+from app.db.base import Base
 from sqlalchemy import (
     DateTime,
-    Enum as SAEnum,
     Index,
     String,
     Text,
     func,
 )
+from sqlalchemy import (
+    Enum as SAEnum,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.base import Base
 
 class ApprovalStatus(str, enum.Enum):
     PENDING = "PENDING"
