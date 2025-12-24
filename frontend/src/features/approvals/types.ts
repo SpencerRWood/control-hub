@@ -1,10 +1,13 @@
+// src/features/approvals/types.ts
+export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export type ApprovalItem = {
   id: number;
   title: string;
   description: string;
   type: string;
-  payload_json: unknown; // <-- must match backend
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  payload_json: unknown;
+  status: ApprovalStatus;
   requested_by: string;
   assigned_to: string;
   created_at: string;
