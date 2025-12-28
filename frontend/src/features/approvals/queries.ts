@@ -1,5 +1,5 @@
 // src/features/approvals/queries.ts
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { ApprovalItem } from "./types";
 
@@ -25,33 +25,35 @@ export function useApprovalsList() {
   });
 }
 
-export type DecideAction = "approve" | "reject";
+type DecideAction = "approve" | "reject";
 
-export type DecideApprovalInput = {
+type DecideInput = {
   id: number;
   action: DecideAction;
-  // optional comment; include only if your backend accepts a body
   decision_reason?: string | null;
+  decision_by?: string; // allow override if you want
 };
 
 export function useDecideApproval() {
-  const qc = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ id, action, decision_reason }: DecideApprovalInput) => {
-      // If backend expects no body, set second arg to undefined.
-      const res = await api.post<ApprovalItem>(
-        `/approvals/${id}/${action}`,
-        decision_reason?.trim() ? { decision_reason: decision_reason.trim() } : undefined
-      );
+    mutationFn: async ({ id, action, decision_reason, decision_by }: DecideInput) => {
+      const body: { decision_by: string; decision_reason?: string } = {
+        // TODO: replace with actual user identity
+        decision_by: decision_by ?? "user:spencer",
+      };
+
+      if (decision_reason && decision_reason.trim().length > 0) {
+        body.decision_reason = decision_reason.trim();
+      }
+
+      // Enforce backend requirement for reject
+      if (action === "reject" && !body.decision_reason) {
+        throw new Error("Rejection requires a decision reason.");
+      }
+
+      const res = await api.post(`/approvals/${id}/${action}`, body);
       return res.data;
-    },
-    onSuccess: (updated) => {
-      qc.setQueryData(["approvals", "item", String(updated.id)], updated);
-      qc.setQueryData<ApprovalItem[]>(["approvals", "list"], (prev) =>
-        prev ? prev.map((a) => (a.id === updated.id ? updated : a)) : prev
-      );
-      qc.invalidateQueries({ queryKey: ["approvals"] });
     },
   });
 }
+
