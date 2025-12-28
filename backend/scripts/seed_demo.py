@@ -13,7 +13,7 @@ def _pick_db_url() -> str:
     1. DATABASE_URL (manual override)
     2. TEST_DATABASE_URL (default for seed/demo)
     """
-    return os.getenv("TEST_DATABASE_URL")
+    return os.getenv("DATABASE_URL")
 
 
 async def main() -> None:
@@ -39,17 +39,17 @@ async def main() -> None:
                     requested_by="agent:foo",
                     assigned_to="user:spencer",
                 ),
-                ApprovalItem(
-                    title="Deploy config v12",
-                    description="Ready to deploy",
-                    type="DEPLOY",
-                    payload_json={"env": "staging", "version": "12"},
-                    status=ApprovalStatus.APPROVED,
-                    requested_by="user:spencer",
-                    assigned_to="agent:deploy",
-                    decision_by="user:spencer",
-                    decision_reason="Looks good",
-                ),
+                # ApprovalItem(
+                #     title="Deploy config v12",
+                #     description="Ready to deploy",
+                #     type="DEPLOY",
+                #     payload_json={"env": "staging", "version": "12"},
+                #     status=ApprovalStatus.APPROVED,
+                #     requested_by="user:spencer",
+                #     assigned_to="agent:deploy",
+                #     decision_by="user:spencer",
+                #     decision_reason="Looks good",
+                # ),
             ]
         )
         await session.commit()

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ApprovalItem } from "./types";
 
-export function ApprovalsTable(props: {
+type ApprovalsTableProps = {
   rows: ApprovalItem[];
   page: number;
   pageSize: number;
@@ -13,8 +13,26 @@ export function ApprovalsTable(props: {
   onPrev: () => void;
   onNext: () => void;
   onPageSizeChange: (n: number) => void;
-}) {
-  const { rows, page, pageSize, total, onPrev, onNext, onPageSizeChange } = props;
+  onApprove: (id: number, decision_reason?: string) => void;
+  onReject: (id: number, decision_reason?: string) => void;
+  isDeciding?: boolean;
+  decidingId?: number | null;
+};
+
+export function ApprovalsTable(props: ApprovalsTableProps) {
+  const {
+    rows,
+    page,
+    pageSize,
+    total,
+    onPrev,
+    onNext,
+    onPageSizeChange,
+    onApprove,
+    onReject,
+    isDeciding = false,
+    decidingId = null,
+  } = props;
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const canPrev = page > 1;
@@ -34,31 +52,64 @@ export function ApprovalsTable(props: {
         </TableHeader>
 
         <TableBody>
-          {rows.map((a) => (
-            <TableRow key={a.id}>
-              <TableCell className="font-mono text-xs">{a.id}</TableCell>
-              <TableCell>
-                <Link to={`/approvals/${a.id}`} className="underline underline-offset-4">
-                  {a.title}
-                </Link>
-                <div className="text-xs text-muted-foreground">{a.type}</div>
-              </TableCell>
-              <TableCell>
-                <Badge variant={a.status === "PENDING" ? "secondary" : a.status === "APPROVED" ? "default" : "destructive"}>
-                  {a.status}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-sm">{a.requested_by}</TableCell>
-              <TableCell className="text-right space-x-2">
-                <Button size="sm" disabled={a.status !== "PENDING"} onClick={() => console.log("approve", a.id)}>
+          {rows.map((a) => {
+            const isPending = a.status === "PENDING";
+            const isThisRowDeciding = decidingId === a.id;
+            const disabled = !isPending || isThisRowDeciding || isDeciding;
+
+            return (
+              <TableRow key={a.id}>
+                <TableCell className="font-mono text-xs">{a.id}</TableCell>
+
+                <TableCell>
+                  <Link to={`/approvals/${a.id}`} className="underline underline-offset-4">
+                    {a.title}
+                  </Link>
+                  <div className="text-xs text-muted-foreground">{a.type}</div>
+                </TableCell>
+
+                <TableCell>
+                  <Badge
+                    variant={
+                      a.status === "PENDING"
+                        ? "secondary"
+                        : a.status === "APPROVED"
+                        ? "default"
+                        : "destructive"
+                    }
+                  >
+                    {a.status}
+                  </Badge>
+                </TableCell>
+
+                <TableCell className="text-sm">{a.requested_by}</TableCell>
+
+                <TableCell className="text-right space-x-2">
+                <Button
+                  size="sm"
+                  disabled={disabled}
+                  onClick={() => onApprove(a.id)}
+                >
                   Approve
                 </Button>
-                <Button size="sm" variant="destructive" disabled={a.status !== "PENDING"} onClick={() => console.log("reject", a.id)}>
+
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={disabled}
+                  onClick={() => {
+                    const reason = window.prompt("Reason for rejection?");
+                    if (reason === null) return; // user cancelled
+                    onReject(a.id, reason);
+                  }}
+                >
                   Reject
                 </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+
           {rows.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-sm text-muted-foreground">
@@ -81,7 +132,9 @@ export function ApprovalsTable(props: {
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
           >
             {[10, 25, 50].map((n) => (
-              <option key={n} value={n}>{n} / page</option>
+              <option key={n} value={n}>
+                {n} / page
+              </option>
             ))}
           </select>
 
