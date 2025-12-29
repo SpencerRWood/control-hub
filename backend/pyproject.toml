@@ -15,7 +15,8 @@ dependencies = [
   "psycopg[binary]>=3.1",
   "asyncpg",
   "alembic",
-  "python-dotenv"
+  "python-dotenv",
+  "pgvector>=0.3.6"
 ]
 
 [project.optional-dependencies]

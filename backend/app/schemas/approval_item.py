@@ -3,9 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
-
 from app.models.approval_item import ApprovalStatus
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ApprovalItemCreate(BaseModel):
