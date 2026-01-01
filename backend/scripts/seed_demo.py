@@ -1,7 +1,7 @@
 import asyncio
 import os
 
-from app.models.approval_item import ApprovalItem, ApprovalStatus
+from backend.app.features.approvals.domain.models import ApprovalItem, ApprovalStatus
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 

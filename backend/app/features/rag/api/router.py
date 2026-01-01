@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
-from app.schemas.rag import (
+from app.features.rag.api.schemas import (
     AnswerResponseDTO,
     ChunkDTO,
     DocumentDTO,
@@ -15,8 +15,6 @@ from app.schemas.rag import (
 
 router = APIRouter(tags=["rag"])
 
-
-# --- Request models (thin wrappers to separate create vs read if you want later) ---
 class DocumentCreate(DocumentDTO):
     pass
 
@@ -28,7 +26,7 @@ class ChunkCreate(ChunkDTO):
 class EmbeddingCreate(BaseModel):
     chunk_id: str = Field(..., max_length=160)
     embedding_model_version: str = Field(..., max_length=64)
-    embedding: list[float]  # dimension validated later (service-layer)
+    embedding: list[float]  
 
 
 class IngestionRunCreate(IngestionRunDTO):
