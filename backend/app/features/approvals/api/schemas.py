@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from app.models.approval_item import ApprovalStatus
+from app.features.approvals.domain.models import ApprovalStatus
 from pydantic import BaseModel, ConfigDict, Field
 
 

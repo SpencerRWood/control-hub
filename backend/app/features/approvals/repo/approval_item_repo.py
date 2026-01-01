@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, Sequence
 
-from app.models.approval_item import ApprovalItem, ApprovalStatus
+from app.features.approvals.domain.models import ApprovalItem, ApprovalStatus
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
