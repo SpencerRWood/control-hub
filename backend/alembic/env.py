@@ -3,12 +3,11 @@
 
 from logging.config import fileConfig
 
+import app.models  # noqa: F401
 from alembic import context
 from app.core.config import settings
 from app.db.base import Base  # this triggers model imports via base.py
 from sqlalchemy import engine_from_config, pool
-
-import app.models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

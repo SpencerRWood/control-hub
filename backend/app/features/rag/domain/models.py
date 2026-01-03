@@ -3,6 +3,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
+from app.db.base import Base
+
+# If you're using pgvector-python:
+# pip install pgvector
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
     BigInteger,
@@ -17,12 +22,6 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.db.base import Base
-
-# If you're using pgvector-python:
-# pip install pgvector
-from pgvector.sqlalchemy import Vector
 
 
 class Document(Base):

@@ -1,6 +1,7 @@
 # Vite build output
 dist/
 coverage/
+.continue/
 
 # Node
 node_modules/

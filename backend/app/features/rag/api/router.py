@@ -1,17 +1,15 @@
 # backend/app/api/rag.py
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, Field
-
 from app.features.rag.api.schemas import (
     AnswerResponseDTO,
     ChunkDTO,
     DocumentDTO,
     FeedbackCreateDTO,
     IngestionRunDTO,
-    RetrievalResultDTO,
 )
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, Field
 
 router = APIRouter(tags=["rag"])
 
