@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from typing import Callable
+import inspect
 
 from app.features.rag.repo import chunks, documents, embeddings, ingestion_runs
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,9 +47,11 @@ class PdfIngestionService:
         stats: dict = {"requested_by": requested_by, "source_uri": source_uri, "pipeline_version": self._pipeline_version}
 
         try:
-            parsed = self._parser.parse(source_uri)
+            result = self._parser.parse(source_uri)
+            parsed = await result if inspect.isawaitable(result) else result
+
             checksum = hashlib.sha256(parsed.markdown.encode("utf-8")).hexdigest()
-            doc_id = checksum[:32]  # stable, compact
+            doc_id = checksum[:32]
 
             stats["doc_id"] = doc_id
 
