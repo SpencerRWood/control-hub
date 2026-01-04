@@ -4,13 +4,13 @@ from datetime import datetime
 from typing import Optional
 
 from app.db.session_async import get_session
-from app.features.approvals.api.schemas import (
+from app.features.approvals.domain.models import ApprovalStatus
+from app.features.approvals.domain.schemas import (
     ApprovalItemApprove,
     ApprovalItemCreate,
     ApprovalItemRead,
     ApprovalItemReject,
 )
-from app.features.approvals.domain.models import ApprovalStatus
 from app.features.approvals.services.approval_item_service import ApprovalItemService
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
