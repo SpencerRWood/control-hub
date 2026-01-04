@@ -16,7 +16,8 @@ dependencies = [
   "asyncpg",
   "alembic",
   "python-dotenv",
-  "pgvector>=0.3.6"
+  "pgvector>=0.3.6",
+  "docling"
 ]
 
 [project.optional-dependencies]

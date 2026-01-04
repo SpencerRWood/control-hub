@@ -1,7 +1,7 @@
 # backend/app/api/rag.py
 from __future__ import annotations
 
-from app.features.rag.api.schemas import (
+from app.features.rag.domain.schemas import (
     AnswerResponseDTO,
     ChunkDTO,
     DocumentDTO,
