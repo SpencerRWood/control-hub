@@ -1,6 +1,8 @@
 # backend/app/api/rag.py
 from __future__ import annotations
 
+from app.db.session_async import get_session
+from app.features.rag.api.deps import get_pdf_ingestion_service
 from app.features.rag.domain.schemas import (
     AnswerResponseDTO,
     ChunkDTO,
@@ -8,8 +10,10 @@ from app.features.rag.domain.schemas import (
     FeedbackCreateDTO,
     IngestionRunDTO,
 )
-from fastapi import APIRouter, HTTPException, status
+from app.features.rag.services.ingestion.service import PdfIngestionService
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["rag"])
 
@@ -56,14 +60,38 @@ def create_chunk(payload: ChunkCreate) -> ChunkDTO:
 def create_embedding(payload: EmbeddingCreate) -> dict:
     raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Not implemented")
 
-
 @router.post(
     "/ingestion-runs",
     response_model=IngestionRunDTO,
     status_code=status.HTTP_201_CREATED,
 )
-def create_ingestion_run(payload: IngestionRunCreate) -> IngestionRunDTO:
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Not implemented")
+async def create_ingestion_run(
+    payload: IngestionRunDTO,
+    session: AsyncSession = Depends(get_session),
+    svc: PdfIngestionService = Depends(get_pdf_ingestion_service),
+) -> IngestionRunDTO:
+    run_id = await svc.ingest_pdf(
+        session=session,
+        source_uri=payload.source_uri,
+        requested_by=payload.stats_json.get("requested_by", "unknown"),
+    )
+
+    # re-fetch to return canonical DB state
+    from app.features.rag.repo.ingestion_runs import get_by_run_id
+
+    run = await get_by_run_id(session, run_id=run_id)
+
+    return IngestionRunDTO(
+        run_id=run.run_id,
+        pipeline_version=run.pipeline_version,
+        source_type=run.source_type,
+        source_uri=run.source_uri,
+        status=run.status,
+        stats_json=run.stats_json,
+        error_message=run.error_message,
+        started_at=run.started_at,
+        finished_at=run.finished_at,
+    )
 
 
 class RagQueryRequest(BaseModel):
