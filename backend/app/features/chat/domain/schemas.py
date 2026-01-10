@@ -19,6 +19,7 @@ class ChatThreadRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    thread_id: str  
     title: Optional[str]
     created_by: str
     metadata_json: dict[str, Any]
@@ -63,7 +64,8 @@ class ChatMessageRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    thread_id: int
+    message_id: str
+    thread_id: str
     role: ChatRole
     content: str
 
