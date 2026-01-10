@@ -3,7 +3,9 @@
 
 from logging.config import fileConfig
 
-import app.models  # noqa: F401
+import app.features.approvals.domain.models
+import app.features.chat.domain.models
+import app.features.rag.domain.models
 from alembic import context
 from app.core.config import settings
 from app.db.base import Base  # this triggers model imports via base.py
