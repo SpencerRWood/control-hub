@@ -14,7 +14,7 @@ from app.features.chat.domain.schemas import (
 )
 from app.features.chat.services.chat_service import ChatService
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+router = APIRouter(tags=["chat"])
 
 
 def get_chat_service(session: AsyncSession = Depends(get_session)) -> ChatService:

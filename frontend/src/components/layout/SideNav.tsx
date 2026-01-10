@@ -26,6 +26,12 @@ export function SideNav() {
         >
           Approvals
         </NavLink>
+        <NavLink
+        to="/chat"
+        className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkIdle}`}
+      >
+        Chat
+      </NavLink>
       </nav>
 
       <div className="mt-auto px-2 pt-6 text-xs text-muted-foreground">
