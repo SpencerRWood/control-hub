@@ -1,49 +1,51 @@
 // src/features/chat/ChatPage.tsx
 import * as React from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { ChevronDown, Plus, UserPlus, SendHorizonal } from "lucide-react";
 import { useChatThread, useCreateChatThread, usePostChatMessage } from "./queries";
 import type { ChatMessage } from "./types";
 
 const STORAGE_KEY = "controlhub.chat.thread_id";
 
-function roleLabel(role: ChatMessage["role"]) {
-  if (role === "user") return "You";
-  if (role === "assistant") return "Assistant";
-  return role;
-}
-
-function roleVariant(role: ChatMessage["role"]): "default" | "secondary" | "outline" {
-  if (role === "user") return "default";
-  if (role === "assistant") return "secondary";
-  return "outline";
+function isUser(m: ChatMessage) {
+  return m.role === "user";
 }
 
 export function ChatPage() {
-  const [threadId, setThreadId] = React.useState<string | null>(() => localStorage.getItem(STORAGE_KEY));
+  const [threadId, setThreadId] = React.useState<string | null>(() =>
+    localStorage.getItem(STORAGE_KEY)
+  );
   const [input, setInput] = React.useState("");
+
+  // ✅ NEW: purely-UI state so we can "expand" only after first send,
+  // regardless of whether the backend thread fetch has refreshed yet.
+  const [hasStarted, setHasStarted] = React.useState(false);
 
   const createThread = useCreateChatThread();
   const threadQ = useChatThread(threadId ?? undefined);
   const postMsg = usePostChatMessage(threadId ?? "__unset__");
 
   const messages = threadQ.data?.messages ?? [];
-  const isReady = !!threadId && !createThread.isPending;
 
+  // prevent runaway loop
   const didInit = React.useRef(false);
+
+  // auto-scroll for expanded view
+  const bottomRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     if (didInit.current) return;
-    if (threadId) {
-      didInit.current = true;
-      return;
-    }
-
     didInit.current = true;
+
+    if (threadId) return;
 
     createThread.mutate(
       { created_by: "user:spencer", title: "Chat", metadata_json: { source: "ui" } },
@@ -55,14 +57,26 @@ export function ChatPage() {
       }
     );
 
-    // IMPORTANT: do not depend on `createThread` (can change identity and retrigger)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId]);
 
-  async function onSend() {
+  // If backend already has messages (e.g., reload), start expanded
+  React.useEffect(() => {
+    if (messages.length > 0) setHasStarted(true);
+  }, [messages.length]);
+
+  React.useEffect(() => {
+    if (!hasStarted) return;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [hasStarted, messages.length]);
+
+  function onSend() {
     if (!threadId) return;
     const content = input.trim();
     if (!content || postMsg.isPending) return;
+
+    // ✅ Expand immediately on first send (before network returns)
+    if (!hasStarted) setHasStarted(true);
 
     setInput("");
     postMsg.mutate({
@@ -73,107 +87,155 @@ export function ChatPage() {
     });
   }
 
+  const canSend = !!threadId && !!input.trim() && !postMsg.isPending && !createThread.isPending;
+
+  // "Landing" view is only when the UI hasn't started yet (even if messages are empty)
+  const showLanding = !hasStarted;
+
+  function resetThread() {
+    localStorage.removeItem(STORAGE_KEY);
+    setThreadId(null);
+    setInput("");
+    setHasStarted(false);
+    didInit.current = false;
+  }
+
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col gap-4">
-      <Card className="px-4 py-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-lg font-semibold leading-none">Chat</div>
-            <div className="mt-1 text-xs text-muted-foreground truncate">
-              Thread: {threadId ?? "creating…"}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                localStorage.removeItem(STORAGE_KEY);
-                setThreadId(null);
-                didInit.current = false; // allow one new creation
-              }}
-            >
-              New thread
+    <div className="h-full min-h-full w-full bg-background text-foreground">
+      {/* Top row */}
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-9 gap-2 px-2 text-sm">
+              <span className="font-medium">ChatGPT 5.2</span>
+              <ChevronDown className="h-4 w-4 opacity-70" />
             </Button>
-          </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuItem>ChatGPT 5.2</DropdownMenuItem>
+            <DropdownMenuItem disabled>More models…</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={resetThread}>
+            <Plus className="h-4 w-4 opacity-80" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-9 w-9">
+            <UserPlus className="h-4 w-4 opacity-80" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Placeholder">
+            <div className="h-4 w-4 rounded-full border border-foreground/40" />
+          </Button>
         </div>
-      </Card>
+      </div>
 
-      <Card className="flex-1 overflow-hidden">
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="text-sm font-medium">Messages</div>
-            <div className="text-xs text-muted-foreground">
-              {threadQ.isLoading ? "Loading…" : `${messages.length} message(s)`}
+      {/* Main */}
+      <div className="mx-auto flex h-[calc(100%-4.25rem)] max-w-5xl flex-col px-4 pb-6 pt-16">
+        {showLanding ? (
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <div className="mb-6 text-center text-3xl font-medium tracking-tight">
+              Where should we begin?
             </div>
+
+            <ComposerPill
+              value={input}
+              onChange={setInput}
+              onSend={onSend}
+              disabled={postMsg.isPending}
+              canSend={canSend}
+            />
           </div>
-          <Separator />
-
-          <ScrollArea className="flex-1">
-            <div className="space-y-4 p-4">
-              {threadQ.isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
-
-              {!threadQ.isLoading && messages.length === 0 && (
-                <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
-                  Start the conversation by sending a message below.
-                </div>
-              )}
-
-              {messages.map((m) => {
-                const isUser = m.role === "user";
-                return (
+        ) : (
+          <div className="mx-auto flex h-full w-full max-w-3xl flex-col">
+            <div className="flex-1 overflow-y-auto py-6">
+              <div className="space-y-6">
+                {messages.map((m) => (
                   <div
                     key={m.message_id}
-                    className={["flex", isUser ? "justify-end" : "justify-start"].join(" ")}
+                    className={cn("flex", isUser(m) ? "justify-end" : "justify-start")}
                   >
-                    <div className={["max-w-[78%]", isUser ? "items-end" : "items-start"].join(" ")}>
-                      <div className={["mb-1 flex items-center gap-2", isUser ? "justify-end" : ""].join(" ")}>
-                        <Badge variant={roleVariant(m.role)}>{roleLabel(m.role)}</Badge>
-                        <span className="text-[11px] text-muted-foreground">
-                          {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      </div>
-
-                      <div
-                        className={[
-                          "rounded-2xl border px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap shadow-sm",
-                          isUser ? "bg-primary text-primary-foreground border-primary/20" : "bg-background",
-                        ].join(" ")}
-                      >
-                        {m.content}
-                      </div>
+                    <div
+                      className={cn(
+                        "max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                        isUser(m)
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/40 border border-border"
+                      )}
+                    >
+                      {m.content}
                     </div>
                   </div>
-                );
-              })}
+                ))}
+
+                <div ref={bottomRef} />
+              </div>
             </div>
-          </ScrollArea>
 
-          <Separator />
-
-          <div className="p-4">
-            <div className="flex gap-2">
-              <Textarea
+            <div className="pt-2">
+              <ComposerPill
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Write a message…"
-                className="min-h-[56px] resize-none"
-                disabled={postMsg.isPending} // allow typing even if thread is still creating
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                    e.preventDefault();
-                    onSend();
-                  }
-                }}
+                onChange={setInput}
+                onSend={onSend}
+                disabled={postMsg.isPending}
+                canSend={canSend}
               />
-              <Button onClick={onSend} disabled={!threadId || postMsg.isPending || !input.trim()}>
-                Send
-              </Button>
             </div>
-
-            <div className="mt-2 text-xs text-muted-foreground">Ctrl/Cmd + Enter to send.</div>
           </div>
-        </div>
-      </Card>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ComposerPill(props: {
+  value: string;
+  onChange: (v: string) => void;
+  onSend: () => void;
+  disabled: boolean;
+  canSend: boolean;
+}) {
+  const { value, onChange, onSend, disabled, canSend } = props;
+
+  return (
+    <div className="w-full max-w-[720px]">
+      <div className="flex items-center gap-2 rounded-full border border-border bg-muted/30 px-3 py-2 shadow-sm">
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
+          <Plus className="h-4 w-4 opacity-80" />
+        </Button>
+
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Ask anything"
+          className={cn(
+            "min-h-[44px] flex-1 resize-none border-0 bg-transparent px-2 py-2 text-sm",
+            "focus-visible:ring-0 focus-visible:ring-offset-0"
+          )}
+          rows={1}
+          disabled={disabled}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              onSend();
+            }
+          }}
+        />
+
+        <Button
+          size="icon"
+          className="h-10 w-10 rounded-full"
+          onClick={onSend}
+          disabled={!canSend}
+          aria-label="Send"
+        >
+          <SendHorizonal className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="mt-2 text-center text-xs text-muted-foreground">
+        Ctrl/Cmd + Enter to send
+      </div>
     </div>
   );
 }
