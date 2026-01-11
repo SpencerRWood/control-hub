@@ -34,8 +34,17 @@ export function ChatPage() {
   const messages = threadQ.data?.messages ?? [];
   const isReady = !!threadId && !createThread.isPending;
 
+  const didInit = React.useRef(false);
+
   React.useEffect(() => {
-    if (threadId) return;
+    if (didInit.current) return;
+    if (threadId) {
+      didInit.current = true;
+      return;
+    }
+
+    didInit.current = true;
+
     createThread.mutate(
       { created_by: "user:spencer", title: "Chat", metadata_json: { source: "ui" } },
       {
@@ -45,7 +54,10 @@ export function ChatPage() {
         },
       }
     );
-  }, [threadId, createThread]);
+
+    // IMPORTANT: do not depend on `createThread` (can change identity and retrigger)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadId]);
 
   async function onSend() {
     if (!threadId) return;
@@ -77,6 +89,7 @@ export function ChatPage() {
               onClick={() => {
                 localStorage.removeItem(STORAGE_KEY);
                 setThreadId(null);
+                didInit.current = false; // allow one new creation
               }}
             >
               New thread
@@ -97,9 +110,7 @@ export function ChatPage() {
 
           <ScrollArea className="flex-1">
             <div className="space-y-4 p-4">
-              {threadQ.isLoading && (
-                <div className="text-sm text-muted-foreground">Loading…</div>
-              )}
+              {threadQ.isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
 
               {!threadQ.isLoading && messages.length === 0 && (
                 <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
@@ -146,7 +157,7 @@ export function ChatPage() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Write a message…"
                 className="min-h-[56px] resize-none"
-                disabled={!isReady || postMsg.isPending}
+                disabled={postMsg.isPending} // allow typing even if thread is still creating
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                     e.preventDefault();
@@ -154,14 +165,12 @@ export function ChatPage() {
                   }
                 }}
               />
-              <Button onClick={onSend} disabled={!isReady || postMsg.isPending || !input.trim()}>
+              <Button onClick={onSend} disabled={!threadId || postMsg.isPending || !input.trim()}>
                 Send
               </Button>
             </div>
 
-            <div className="mt-2 text-xs text-muted-foreground">
-              Ctrl/Cmd + Enter to send.
-            </div>
+            <div className="mt-2 text-xs text-muted-foreground">Ctrl/Cmd + Enter to send.</div>
           </div>
         </div>
       </Card>
